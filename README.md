@@ -14,3 +14,9 @@ A message authentication scheme where the hash of the message is encrypted using
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+4. **Run the application:**
+   ```bash
+   python3 app.py
