@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, jsonify, render_template
-from crypto_sender import generate_secure_payload
-from crypto_receiver import verify_payload
+from sender import generate_secure_payload
+from receiver import verify_payload
 
 app = Flask(__name__)
 
