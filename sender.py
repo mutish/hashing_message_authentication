@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # Build the payload
     payload = build_message_payload(test_message, shared_secret)
 
-    # Display results for educational purposes
+    # Display results for testing purposes
     print("--- Sender Core Logic Test ---")
     print(f"Original Message: {payload['message']}")
     print(f"Generated Hash (H(M)): {generate_hash(test_message)}")
