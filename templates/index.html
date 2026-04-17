@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Authentication Tool - Encrypted Hash</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>Message Authentication with Encrypted Hash</h1>
+            <p class="subtitle">Educational cryptography tool demonstrating H(M) encryption for message authentication</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Left Card: Source A (Sender) -->
+            <div class="card sender-card">
+                <div class="card-header">
+                    <div class="card-icon sender-icon">A</div>
+                    <h2>Source A (Sender)</h2>
+                </div>
+
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="sender-message">Plaintext Message (M)</label>
+                        <textarea 
+                            id="sender-message" 
+                            class="message-textarea" 
+                            placeholder="Enter your message here..."
+                            rows="6"
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sender-key">Shared Secret Key (K)</label>
+                        <input 
+                            type="text" 
+                            id="sender-key" 
+                            class="key-input" 
+                            placeholder="Enter shared secret key"
+                        >
+                    </div>
+
+                    <button id="generate-btn" class="btn btn-primary">
+                        <span class="btn-icon">🔐</span>
+                        Generate Signature & Transmit
+                    </button>
+
+                    <div class="data-display">
+                        <div class="data-field">
+                            <label>Calculated Hash: H(M)</label>
+                            <div id="calculated-hash" class="code-block">-</div>
+                        </div>
+
+                        <div class="data-field">
+                            <label>Encrypted Signature: E(K, H(M))</label>
+                            <div id="encrypted-signature" class="code-block">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Card: Destination B (Receiver) -->
+            <div class="card receiver-card">
+                <div class="card-header">
+                    <div class="card-icon receiver-icon">B</div>
+                    <h2>Destination B (Receiver)</h2>
+                </div>
+
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="received-message">
+                            Received Message
+                            <span class="tooltip" data-tooltip="Editable for tampering">ℹ️</span>
+                        </label>
+                        <textarea 
+                            id="received-message" 
+                            class="message-textarea editable" 
+                            placeholder="Message will appear here after transmission..."
+                            rows="6"
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Received Signature</label>
+                        <div id="received-signature" class="code-block readonly">-</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="receiver-key">Shared Secret Key (K)</label>
+                        <input 
+                            type="text" 
+                            id="receiver-key" 
+                            class="key-input" 
+                            placeholder="Enter shared secret key for verification"
+                        >
+                    </div>
+
+                    <button id="verify-btn" class="btn btn-primary">
+                        <span class="btn-icon">🔓</span>
+                        Decrypt & Verify
+                    </button>
+
+                    <div class="data-display">
+                        <div class="data-field">
+                            <label>Recalculated Hash</label>
+                            <div id="recalculated-hash" class="code-block">-</div>
+                        </div>
+
+                        <div class="data-field">
+                            <label>Decrypted Hash</label>
+                            <div id="decrypted-hash" class="code-block">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Status Banners -->
+                    <div class="status-banners">
+                        <div id="status-match" class="status-banner status-success hidden">
+                            <span class="status-icon">✓</span>
+                            <span class="status-text">Match - Authentic</span>
+                        </div>
+                        <div id="status-mismatch" class="status-banner status-error hidden">
+                            <span class="status-icon">⚠</span>
+                            <span class="status-text">Mismatch - Tampered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

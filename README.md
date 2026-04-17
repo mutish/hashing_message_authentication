@@ -1,96 +1,116 @@
-# Hashing and Message Authentication
-A message authentication scheme where the hash of the message is encrypted using a symmetric key, appended to the plaintext message, and sent to the receiver. The receiver then decrypts the hash, re-hashes the received message, and compares the two to verify authenticity.
+# Message Authentication with Encrypted Hash
+
+An educational implementation of message authentication using AES-256-GCM encryption. This system demonstrates how to verify message authenticity and integrity by encrypting a SHA-256 hash of the message with a shared symmetric key.
+
+## How It Works
+
+The authentication scheme follows this cryptographic flow:
+
+### Sender Side
+1. Compute the SHA-256 hash of the plaintext message: `H(M)`
+2. Encrypt the hash using AES-256-GCM with a shared secret key: `E(K, H(M))`
+3. Transmit both the plaintext message and encrypted hash to the receiver
+
+### Receiver Side
+1. Decrypt the encrypted hash using the shared secret key
+2. Recompute the SHA-256 hash of the received message
+3. Compare the decrypted hash with the newly computed hash using constant-time comparison
+4. If hashes match → message is **authentic and unmodified**
+5. If hashes don't match → message was **tampered with or wrong key used**
+
+## Security Features
+
+- **AES-256-GCM**: Authenticated encryption with associated data for both confidentiality and integrity
+- **SHA-256**: Cryptographic hash function (256-bit output)
+- **Random Nonce**: 12-byte random nonce for each encryption ensures ciphertext uniqueness
+- **Constant-Time Comparison**: Prevents timing attacks when comparing hashes
+- **Key Derivation**: SHA-256 based key derivation from user-provided passwords to generate cryptographic keys
 
 ## Project Structure
-- `app.py`: Flask application and API routing (Copilot generated).
-- `sender.py`: Handles hashing and encryption.
-- `receiver.py`: Handles decryption and hash comparison.
-- `templates/`: Contains `sender.html` and `receiver.html` for the frontend.
+
+```
+hashing_message_authentication/
+├── app.py                  # Flask web server and REST API endpoints
+├── sender.py               # Message hashing and encryption logic
+├── receiver.py             # Hash decryption and verification logic
+├── requirements.txt        # Python dependencies
+├── README.md              # This file
+├── templates/
+│   └── index.html         # Interactive web interface
+└── static/
+    ├── css/
+    │   └── styles.css     # Frontend styling
+    └── js/
+        └── app.js         # JavaScript for interactive UI
+```
 
 ## Setup Instructions
 
-1. **Clone the repository.**
+### Prerequisites
+- Python 3.8 or higher
+- pip package manager
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/mutish/hashing_message_authentication.git
+   cd hashing_message_authentication
+   ```
+
 2. **Create a virtual environment:**
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
 3. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
-4. **Run the application:**
-   ```bash
-   python3 app.py
+   ```
+
+## Usage
+
+### Web Interface
+
+Run the Flask application:
+```bash
+python3 app.py
+```
+
+The server will start at `http://127.0.0.1:5000`. Open this URL in your browser to access the interactive interface:
+
+- **Source A (Sender)**: Enter a message and shared secret key, then click "Generate Signature & Transmit"
+- **Destination B (Receiver)**: The message and encrypted hash are populated automatically. Enter the same shared secret key and click "Decrypt & Verify" to check authenticity
+- **Try tampering**: Edit the received message and re-verify to see authentication fail
 
 
-import hashlib
-import hmac
-import os
+```bash
+# Terminal 1: Start the Flask server
+python3 app.py
+# Server running at http://127.0.0.1:5000
 
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-NONCE_BYTES = 12
-
-def decrypt_hash(encrypted_hash: bytes, key: bytes) -> bytes:
-    """Decrypt the received encrypted hash using AES-256-GCM."""
-    min_length = NONCE_BYTES + 32 + 16  # nonce + SHA-256 digest + GCM tag
-    if len(encrypted_hash) < min_length:
-        raise ValueError("Encrypted blob too short. Data may be corrupted.")
-    
-    nonce = encrypted_hash[:NONCE_BYTES]
-    ciphertext = encrypted_hash[NONCE_BYTES:]
-    
-    # AESGCM(key) will natively raise ValueError if the key length is invalid
-    return AESGCM(key).decrypt(nonce, ciphertext, associated_data=None)
+# Click on the 
 
 
-def verify_message(message: str | bytes, received_encrypted_hash: bytes, key: bytes) -> bool:
-    """Verify the authenticity and integrity of a received message."""
-    if isinstance(message, str):
-        message = message.encode("utf-8")
-    
-    try:
-        decrypted_hash = decrypt_hash(received_encrypted_hash, key)
-        computed_hash = hashlib.sha256(message).digest()
-        
-        # Constant-time comparison prevents timing attacks
-        return hmac.compare_digest(computed_hash, decrypted_hash)
-    except Exception:
-        # Catches InvalidTag (tampering), ValueError (length/key issues), etc.
-        return False
+```
+
+## Dependencies
+
+- **Flask 3.0.0**: Web framework for building the REST API and serving the web interface
+- **cryptography 41.0.4**: Provides AES-256-GCM and other cryptographic primitives
+
+## Learning Outcomes
+
+This project demonstrates:
+- Message authentication codes (MAC) concepts
+- Symmetric encryption (AES-256-GCM)
+- Hash functions (SHA-256)
+- Secure key derivation from passwords
+- Constant-time comparison to prevent timing attacks
+- RESTful API design
+- Frontend-backend integration
 
 
-# ---------------------------------------------------------------------------
-# Utility: sender-side helper & tests
-# ---------------------------------------------------------------------------
-
-def _sender_encrypt_hash(message: str | bytes, key: bytes) -> bytes:
-    """Helper to simulate sender-side H(M) -> E(K, H(M))."""
-    if isinstance(message, str):
-        message = message.encode("utf-8")
-    
-    digest = hashlib.sha256(message).digest()
-    nonce = os.urandom(NONCE_BYTES)
-    return nonce + AESGCM(key).encrypt(nonce, digest, associated_data=None)
-
-
-if __name__ == "__main__":
-    print("--- receiver.py Message Verification Demo ---")
-    
-    key = AESGCM.generate_key(bit_length=256)
-    msg = b"Transfer $500 to account 9876543210"
-    enc_hash = _sender_encrypt_hash(msg, key)
-    
-    # Test 1 - Happy path
-    print(f"1. Authentic message:   {verify_message(msg, enc_hash, key)}")
-    
-    # Test 2 - Tampered message
-    print(f"2. Tampered message:    {verify_message(b'Transfer $5000 to account 9876543210', enc_hash, key)}")
-    
-    # Test 3 - Wrong key
-    wrong_key = AESGCM.generate_key(bit_length=256)
-    print(f"3. Wrong key:           {verify_message(msg, enc_hash, wrong_key)}")
-    
-    # Test 4 - Corrupted hash blob
-    corrupted_hash = bytearray(enc_hash)
-    corrupted_hash[15] ^= 0xFF
-    print(f"4. Corrupted hash blob: {verify_message(msg, bytes(corrupted_hash), key)}")
+## Author
+Created by Computer Security Group
